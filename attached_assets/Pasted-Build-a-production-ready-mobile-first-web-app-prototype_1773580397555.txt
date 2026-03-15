@@ -1,0 +1,385 @@
+Build a production-ready mobile-first web app prototype of a Telegram Mini App game called “Luck Miner”.
+
+Use:
+- React
+- TypeScript
+- Vite
+- Tailwind CSS
+- Framer Motion
+
+Also create a small Node.js + Express backend scaffold prepared for later Telegram integration, but keep the prototype fully runnable locally without Telegram.
+
+I want the game to match this specification as closely as possible.
+
+==================================================
+CORE IDEA
+==================================================
+
+Luck Miner is a bright, polished, addictive casual risk game.
+The player taps tiles on a 4x4 mine board.
+Tiles can reveal:
+- coins
+- relics
+- multipliers
+- traps
+
+The player can cash out before hitting a trap.
+The game should feel premium, shiny, fair, and intuitive.
+
+==================================================
+VISUAL STYLE
+==================================================
+
+Make it look like a high-quality premium mobile mini game:
+- bright
+- glossy
+- eye-catching
+- neon gradients
+- glassmorphism cards
+- vivid colors
+- rounded corners
+- strong shadows
+- subtle glow
+- clean hierarchy
+- addictive hypercasual / arcade / casino-lite feel
+
+The center of the screen must be dominated by the playing board.
+The board should be the first thing the player notices.
+
+Use strong visual icons / emoji inside tiles where helpful:
+- coin tile: coin icon / emoji
+- relic tile: gem icon / emoji
+- multiplier tile: sparkle icon / emoji
+- trap tile: explosion icon / emoji
+
+==================================================
+LAYOUT
+==================================================
+
+Top section:
+- coins card on the top left
+- relics card on the top right
+- menu button near top right
+- these top cards should be attractive, compact, and premium
+
+Center:
+- the 4x4 game board is the main visual focus
+- centered vertically and horizontally in the main content area
+- board should have a polished glowing container
+
+Board overlay behavior:
+- before game start, a large overlay sits on top of the board with a main button:
+  - “Start Dig”
+- when game starts, overlay disappears
+- when run ends by trap or cashout, overlay comes back
+- if cashout happened, overlay text should be celebratory
+- if trap happened, overlay should be sad / defeated and ask to try again
+
+Below the board:
+- current haul display, smaller and directly under the board
+- free plays + reset timer strip under that
+- then 2 large main buttons:
+  - Cash Out
+  - Play Again
+
+Bottom area:
+- quick status row with badges for stats
+- reset button
+- sound/haptic plan toggle button
+
+Bottom drawer / slide-up menu:
+- opens from bottom
+- does NOT cover full screen
+- scrollable
+- feels like an in-game app panel
+- contains:
+  - shield purchase
+  - donate/support placeholder
+  - daily gift placeholder
+  - extra summary stats
+
+==================================================
+GAME RULES
+==================================================
+
+Board:
+- 4 columns × 4 rows
+- 16 tiles total
+
+Tile types:
+- coin
+- relic
+- multiplier
+- trap
+
+Coin tiles:
+- give coins to current haul
+- example values can be chosen randomly from a small set like:
+  8, 10, 12, 15, 18, 20, 24, 30
+
+Relic tiles:
+- add relic count to permanent balance
+- usually +1, sometimes +2
+
+Multiplier tiles:
+- increase current run multiplier
+- use values like:
+  x1.2, x1.4, x1.6, x1.8
+
+Trap tiles:
+- if no shield: run ends, haul is lost
+- if shield exists: consume shield, protect player, continue run
+
+==================================================
+FREE PLAYS / DAILY RESET
+==================================================
+
+- player gets 8 free plays per day
+- show free plays left clearly under the board
+- after free plays are used, each extra play costs 40 coins
+- show text like:
+  “Free plays left today: X/8 · extra play costs 40 coins · resets in HH:MM:SS”
+
+Reset behavior:
+- reset happens at the same exact daily reset time regardless of whether plays were used
+- for this prototype, implement daily reset using localStorage + timer
+- structure code so this can later be moved to backend for Telegram production
+
+When the player presses Start Dig / Play Again:
+- if free plays remain, consume 1 free play
+- otherwise, if coins >= 40, subtract 40 coins and start run
+- otherwise do not start run
+
+==================================================
+RISK SYSTEM
+==================================================
+
+The game must feel fair, not brutal.
+
+Use TWO risk layers:
+
+1. Run Risk
+- rises during a single run as the player keeps digging
+- makes continued digging riskier
+
+2. Streak Heat
+- rises after successful cashouts across runs
+- makes future runs slightly riskier overall
+- prevents endless easy win streaks
+
+IMPORTANT:
+When a trap is hit, BOTH the run risk and the streak heat should drop.
+This must happen whether:
+- the trap ends the run
+- OR a shield blocks the trap
+
+So the game should NOT just get harder forever.
+
+Use these approximate values:
+- BASE_RISK = 4.5%
+- POST_TRAP_RISK = 5.5%
+- MAX_RISK = 26%
+- RISK_STEP per safe dig = 1.3%
+- CASHOUT_PRESSURE_STEP = 1%
+- CASHOUT_PRESSURE_DROP_ON_TRAP = 2%
+- MAX_CASHOUT_PRESSURE = 8%
+
+Behavior:
+- starting a run should begin near base risk + current streak heat
+- every safe dig increases run risk a bit
+- every successful cashout increases streak heat a bit
+- every trap hit reduces streak heat and reduces the next baseline risk
+- this should feel like:
+  - winning a lot = the mine pushes back
+  - hitting traps = pressure cools down
+
+Show visible badges for:
+- Steps
+- Risk %
+- Streak Heat %
+- Shield count
+- Best score
+- Prototype badge
+
+==================================================
+ANIMATIONS / FEEL
+==================================================
+
+Implement these polished animations:
+
+1. Trap shake
+- when a trap is triggered, the tile should shake briefly (~0.15s) before revealing
+
+2. Shield animation
+- when shield saves the player:
+  - animate shield counter
+  - show shield burst directly on the board at the trap tile location
+  - make it feel satisfying and protective
+
+3. Cashout button pulse
+- when current haul is greater than zero, Cash Out button should glow/pulse
+- pulse intensity should increase slightly as haul gets bigger
+
+4. Cashout success toast
+- after cashout:
+  - show a toast / popup
+  - use celebratory colors
+  - add confetti
+  - animate the number of coins gained so it counts up instead of appearing instantly
+
+5. Coin fly animation
+- after cashout, show coins flying from the lower/board area toward the top-left coin counter
+
+6. Relic sparkles
+- when relic tile is revealed, show sparkle particles over that tile briefly
+
+7. Board overlay states
+- idle state: “Ready to dig?”
+- won state: “Safe cashout”
+- lost state: “You hit a trap”
+- each state should have a different emotional tone
+
+8. General feel
+- subtle board-start premium feel
+- polished transitions everywhere
+- smooth mobile feel
+
+==================================================
+UI DETAILS
+==================================================
+
+Top stats:
+- coins card top-left
+- relics card top-right
+- both should look premium
+
+Board:
+- inside a rounded glowing card
+- include small top progress/glow bar above tiles
+
+Under board:
+- current haul in small pill
+- free plays / timer strip in a separate pill
+- then main action buttons
+
+Buttons:
+- Cash Out should be large, important, bright gold/yellow
+- Play Again should be large, important, cyan/fuchsia gradient
+- overlay Start Dig button should also be prominent
+
+Bottom quick status:
+- Steps
+- Risk %
+- Streak Heat %
+- Shield
+- Best
+- Prototype
+
+Drawer:
+- shield purchase button
+- donate/support placeholder
+- daily gift placeholder
+- summary stat cards
+
+==================================================
+STATE / DATA TO TRACK
+==================================================
+
+Track these in frontend state:
+- coins
+- relics
+- shield count
+- best cashout
+- current haul
+- current multiplier
+- revealed tiles
+- game state: idle / playing / won / lost
+- steps
+- free plays left
+- next reset timer label
+- run risk
+- streak heat
+- trap shake state
+- shield burst state
+- cashout toast state
+- coin burst animation state
+- relic sparkles state
+
+==================================================
+DEFAULT STARTING VALUES
+==================================================
+
+Use roughly:
+- coins = 220
+- relics = 3
+- shields = 1
+- best = 0
+- free plays = 8
+- current multiplier = 1
+
+==================================================
+TECH / CODE QUALITY
+==================================================
+
+Requirements:
+- clean component structure
+- readable code
+- TypeScript types
+- responsive mobile layout
+- good naming
+- comments only where useful
+- no unnecessary complexity
+
+Create:
+- frontend/
+- backend/
+
+Frontend:
+- React + TypeScript + Vite + Tailwind + Framer Motion
+
+Backend:
+- Node + Express scaffold
+- placeholder route for future Telegram auth verification
+- placeholder routes / notes for future save system
+- but do NOT fully implement Telegram auth or payments yet
+
+==================================================
+TELEGRAM PREPARATION
+==================================================
+
+Prepare architecture for later Telegram Mini App integration:
+- frontend should be easy to connect to Telegram WebApp API later
+- backend should have a placeholder endpoint for Telegram init-data verification
+- leave clear comments / TODO markers where Telegram integration goes
+- do not implement full payments yet
+- do not clutter prototype with unfinished systems
+
+==================================================
+DELIVERABLES
+==================================================
+
+I want:
+1. full working codebase
+2. clean folder structure
+3. polished local prototype
+4. setup instructions to run locally
+5. clear notes on where Telegram integration will be added later
+6. clear notes on where frontend/backend should be hosted later
+
+==================================================
+IMPORTANT BEHAVIOR PRIORITIES
+==================================================
+
+Priority order:
+1. match the exact gameplay feel
+2. keep the board centered and dominant
+3. make it bright and premium
+4. preserve the fair risk system
+5. make animations satisfying
+6. keep code clean and ready for Telegram later
+
+Do NOT make the game overly punishing.
+Do NOT let risk only rise forever.
+Do NOT clutter the screen.
+
+The final result should feel like a polished, addictive, fair mobile Telegram mini game prototype that visually matches this spec very closely.

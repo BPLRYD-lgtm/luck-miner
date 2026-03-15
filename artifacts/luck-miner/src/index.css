@@ -1,0 +1,124 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Orbitron:wght@500;700;900&display=swap');
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: 'Inter', sans-serif;
+  --font-display: 'Orbitron', sans-serif;
+
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+
+  --color-neon-cyan: hsl(188 100% 50%);
+  --color-neon-fuchsia: hsl(300 100% 50%);
+  --color-neon-gold: hsl(45 100% 50%);
+  --color-neon-rose: hsl(350 100% 60%);
+}
+
+:root {
+  /* Dark Neon Arcade Theme */
+  --background: 240 100% 4%; /* Deepest navy/black */
+  --foreground: 0 0% 100%;
+  
+  --card: 240 50% 10%;
+  --card-foreground: 0 0% 100%;
+  
+  --popover: 240 50% 10%;
+  --popover-foreground: 0 0% 100%;
+  
+  --primary: 188 100% 50%; /* Cyan */
+  --primary-foreground: 240 100% 10%;
+  
+  --secondary: 300 100% 50%; /* Fuchsia */
+  --secondary-foreground: 0 0% 100%;
+  
+  --muted: 240 30% 20%;
+  --muted-foreground: 240 10% 70%;
+  
+  --accent: 45 100% 50%; /* Gold */
+  --accent-foreground: 240 100% 10%;
+  
+  --destructive: 350 100% 60%; /* Rose/Red */
+  --destructive-foreground: 0 0% 100%;
+  
+  --border: 240 40% 20%;
+  --input: 240 40% 20%;
+  --ring: 188 100% 50%;
+  
+  --radius: 1rem;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground antialiased font-sans overflow-x-hidden;
+    background-image: 
+      radial-gradient(circle at 15% 50%, rgba(0, 245, 255, 0.05), transparent 25%),
+      radial-gradient(circle at 85% 30%, rgba(255, 0, 255, 0.05), transparent 25%);
+    background-attachment: fixed;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    @apply tracking-wider;
+  }
+}
+
+@layer utilities {
+  .glass-card {
+    @apply bg-white/5 backdrop-blur-xl border border-white/10 shadow-xl;
+  }
+  
+  .glass-panel {
+    @apply bg-black/40 backdrop-blur-2xl border border-white/5 shadow-2xl;
+  }
+
+  .neon-text-cyan {
+    text-shadow: 0 0 10px hsla(188, 100%, 50%, 0.5), 0 0 20px hsla(188, 100%, 50%, 0.3);
+  }
+
+  .neon-text-gold {
+    text-shadow: 0 0 10px hsla(45, 100%, 50%, 0.5), 0 0 20px hsla(45, 100%, 50%, 0.3);
+  }
+
+  .neon-border-cyan {
+    box-shadow: 0 0 10px hsla(188, 100%, 50%, 0.3), inset 0 0 10px hsla(188, 100%, 50%, 0.2);
+    border-color: hsla(188, 100%, 50%, 0.5);
+  }
+
+  .neon-border-gold {
+    box-shadow: 0 0 10px hsla(45, 100%, 50%, 0.3), inset 0 0 10px hsla(45, 100%, 50%, 0.2);
+    border-color: hsla(45, 100%, 50%, 0.5);
+  }
+
+  .neon-border-rose {
+    box-shadow: 0 0 15px hsla(350, 100%, 60%, 0.4), inset 0 0 15px hsla(350, 100%, 60%, 0.2);
+    border-color: hsla(350, 100%, 60%, 0.6);
+  }
+}

@@ -2,7 +2,7 @@
 
 ## Overview
 
-pnpm workspace monorepo using TypeScript. Each package manages its own dependencies.
+pnpm workspace monorepo using TypeScript. Contains the Luck Miner game (mobile-first Telegram Mini App prototype) and a Node.js/Express backend scaffold.
 
 ## Stack
 
@@ -16,81 +16,93 @@ pnpm workspace monorepo using TypeScript. Each package manages its own dependenc
 - **API codegen**: Orval (from OpenAPI spec)
 - **Build**: esbuild (CJS bundle)
 
+## Luck Miner Game
+
+A bright, polished mobile-first casual risk game prototype built for Telegram Mini Apps.
+
+### Game Rules
+- 4×4 mine board (16 tiles): coins 🪙, relics 💎, multipliers ✨, traps 💥
+- Player taps tiles to reveal them; can cash out before hitting a trap
+- Trap hits end the run (haul lost) unless a shield absorbs them
+- 8 free plays per day; extra plays cost 40 coins
+
+### Risk System
+- **Run Risk**: rises with each safe dig during a run (BASE_RISK=4.5%, +1.3% per dig, max 26%)
+- **Streak Heat**: rises after successful cashouts, resets on trap hits
+- When a trap fires (with or without shield): streak heat drops, next run starts easier
+
+### State Persistence
+- All game state stored in `localStorage`
+- TODO: Replace with Telegram CloudStorage API in production
+
+### Telegram Integration Notes
+- `artifacts/luck-miner/src/lib/telegram.ts` — placeholder for Telegram WebApp API
+- `artifacts/api-server/src/routes/telegram.ts` — backend scaffold for init-data verification and save/load endpoints
+- `artifacts/luck-miner/src/App.tsx` — Telegram.WebApp.ready() commented TODO
+
 ## Structure
 
 ```text
 artifacts-monorepo/
-├── artifacts/              # Deployable applications
-│   └── api-server/         # Express API server
+├── artifacts/
+│   ├── api-server/         # Express API server (Telegram backend scaffold)
+│   │   └── src/routes/
+│   │       ├── health.ts   # Health check
+│   │       └── telegram.ts # Telegram integration placeholder routes
+│   └── luck-miner/         # React + Vite game frontend
+│       └── src/
+│           ├── components/ # GameBoard, Tile, StatsBar, HaulDisplay, etc.
+│           ├── hooks/      # use-game-state.ts, use-free-plays.ts
+│           ├── pages/      # Game.tsx (main page)
+│           └── lib/        # telegram.ts (Telegram API placeholder)
 ├── lib/                    # Shared libraries
 │   ├── api-spec/           # OpenAPI spec + Orval codegen config
 │   ├── api-client-react/   # Generated React Query hooks
 │   ├── api-zod/            # Generated Zod schemas from OpenAPI
 │   └── db/                 # Drizzle ORM schema + DB connection
-├── scripts/                # Utility scripts (single workspace package)
-│   └── src/                # Individual .ts scripts, run via `pnpm --filter @workspace/scripts run <script>`
-├── pnpm-workspace.yaml     # pnpm workspace (artifacts/*, lib/*, lib/integrations/*, scripts)
-├── tsconfig.base.json      # Shared TS options (composite, bundler resolution, es2022)
+├── scripts/                # Utility scripts
+├── pnpm-workspace.yaml     # pnpm workspace
+├── tsconfig.base.json      # Shared TS options
 ├── tsconfig.json           # Root TS project references
 └── package.json            # Root package with hoisted devDeps
 ```
+
+## Running Locally
+
+1. `pnpm install` — install all dependencies
+2. Frontend dev server: runs automatically on the configured port
+3. API server: runs automatically on port 8080
+
+## Where to Add Telegram Integration Later
+
+1. **Frontend** (`artifacts/luck-miner/src/lib/telegram.ts`):
+   - Call `initTelegram()` from App.tsx
+   - Replace `localStorage` calls with `Telegram.WebApp.CloudStorage`
+   - Add haptic feedback on tile taps and cashout
+
+2. **Backend** (`artifacts/api-server/src/routes/telegram.ts`):
+   - `POST /api/telegram/verify` — verify Telegram initData HMAC
+   - `GET /api/telegram/user/:id` — load player state from DB
+   - `POST /api/telegram/save` — save player state to DB
+
+3. **Environment Variables to Add**:
+   - `TELEGRAM_BOT_TOKEN` — from @BotFather
+
+## Hosting Notes (Telegram Production)
+
+- **Frontend** (`luck-miner`): Deploy as a static site (Vercel, Netlify, Replit Deploy). Set the URL as your Telegram Mini App URL in @BotFather.
+- **Backend** (`api-server`): Deploy as a Node.js server (Replit Deploy, Railway, Fly.io). Must be HTTPS.
+- **Database**: Replit PostgreSQL (already configured via DATABASE_URL env var)
 
 ## TypeScript & Composite Projects
 
 Every package extends `tsconfig.base.json` which sets `composite: true`. The root `tsconfig.json` lists all packages as project references. This means:
 
-- **Always typecheck from the root** — run `pnpm run typecheck` (which runs `tsc --build --emitDeclarationOnly`). This builds the full dependency graph so that cross-package imports resolve correctly. Running `tsc` inside a single package will fail if its dependencies haven't been built yet.
-- **`emitDeclarationOnly`** — we only emit `.d.ts` files during typecheck; actual JS bundling is handled by esbuild/tsx/vite...etc, not `tsc`.
-- **Project references** — when package A depends on package B, A's `tsconfig.json` must list B in its `references` array. `tsc --build` uses this to determine build order and skip up-to-date packages.
+- **Always typecheck from the root** — run `pnpm run typecheck` (which runs `tsc --build --emitDeclarationOnly`).
+- **`emitDeclarationOnly`** — we only emit `.d.ts` files during typecheck; actual JS bundling is handled by esbuild/tsx/vite.
+- **Project references** — when package A depends on package B, A's `tsconfig.json` must list B in its `references` array.
 
 ## Root Scripts
 
 - `pnpm run build` — runs `typecheck` first, then recursively runs `build` in all packages that define it
 - `pnpm run typecheck` — runs `tsc --build --emitDeclarationOnly` using project references
-
-## Packages
-
-### `artifacts/api-server` (`@workspace/api-server`)
-
-Express 5 API server. Routes live in `src/routes/` and use `@workspace/api-zod` for request and response validation and `@workspace/db` for persistence.
-
-- Entry: `src/index.ts` — reads `PORT`, starts Express
-- App setup: `src/app.ts` — mounts CORS, JSON/urlencoded parsing, routes at `/api`
-- Routes: `src/routes/index.ts` mounts sub-routers; `src/routes/health.ts` exposes `GET /health` (full path: `/api/health`)
-- Depends on: `@workspace/db`, `@workspace/api-zod`
-- `pnpm --filter @workspace/api-server run dev` — run the dev server
-- `pnpm --filter @workspace/api-server run build` — production esbuild bundle (`dist/index.cjs`)
-- Build bundles an allowlist of deps (express, cors, pg, drizzle-orm, zod, etc.) and externalizes the rest
-
-### `lib/db` (`@workspace/db`)
-
-Database layer using Drizzle ORM with PostgreSQL. Exports a Drizzle client instance and schema models.
-
-- `src/index.ts` — creates a `Pool` + Drizzle instance, exports schema
-- `src/schema/index.ts` — barrel re-export of all models
-- `src/schema/<modelname>.ts` — table definitions with `drizzle-zod` insert schemas (no models definitions exist right now)
-- `drizzle.config.ts` — Drizzle Kit config (requires `DATABASE_URL`, automatically provided by Replit)
-- Exports: `.` (pool, db, schema), `./schema` (schema only)
-
-Production migrations are handled by Replit when publishing. In development, we just use `pnpm --filter @workspace/db run push`, and we fallback to `pnpm --filter @workspace/db run push-force`.
-
-### `lib/api-spec` (`@workspace/api-spec`)
-
-Owns the OpenAPI 3.1 spec (`openapi.yaml`) and the Orval config (`orval.config.ts`). Running codegen produces output into two sibling packages:
-
-1. `lib/api-client-react/src/generated/` — React Query hooks + fetch client
-2. `lib/api-zod/src/generated/` — Zod schemas
-
-Run codegen: `pnpm --filter @workspace/api-spec run codegen`
-
-### `lib/api-zod` (`@workspace/api-zod`)
-
-Generated Zod schemas from the OpenAPI spec (e.g. `HealthCheckResponse`). Used by `api-server` for response validation.
-
-### `lib/api-client-react` (`@workspace/api-client-react`)
-
-Generated React Query hooks and fetch client from the OpenAPI spec (e.g. `useHealthCheck`, `healthCheck`).
-
-### `scripts` (`@workspace/scripts`)
-
-Utility scripts package. Each script is a `.ts` file in `src/` with a corresponding npm script in `package.json`. Run scripts via `pnpm --filter @workspace/scripts run <script>`. Scripts can import any workspace package (e.g., `@workspace/db`) by adding it as a dependency in `scripts/package.json`.

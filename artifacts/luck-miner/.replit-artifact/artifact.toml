@@ -1,0 +1,31 @@
+kind = "web"
+previewPath = "/"
+title = "Luck Miner"
+version = "1.0.0"
+id = "artifacts/luck-miner"
+router = "path"
+
+[[integratedSkills]]
+name = "react-vite"
+version = "1.0.0"
+
+[[services]]
+localPort = 21162
+name = "web"
+paths = ["/"]
+
+[services.development]
+run = "pnpm --filter @workspace/luck-miner run dev"
+
+[services.env]
+PORT = "21162"
+BASE_PATH = "/"
+
+[services.production]
+build = ["pnpm", "--filter", "@workspace/luck-miner", "run", "build"]
+publicDir = "artifacts/luck-miner/dist/public"
+serve = "static"
+
+[[services.production.rewrites]]
+from = "/*"
+to = "/index.html"

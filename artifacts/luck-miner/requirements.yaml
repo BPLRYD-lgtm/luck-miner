@@ -1,0 +1,13 @@
+packages:
+  "framer-motion": "For fluid spring animations, tile flips, and layout transitions"
+  "canvas-confetti": "For cashout celebration particles"
+  "@types/canvas-confetti": "Types for canvas-confetti"
+  "clsx": "Utility for constructing className strings conditionally"
+  "tailwind-merge": "Utility for merging tailwind classes safely"
+  "date-fns": "For formatting the reset timer"
+  "lucide-react": "For UI icons across the app"
+images: []
+notes:
+  - "Using framer-motion heavily for the requested glossy arcade feel."
+  - "LocalStorage is used for persistence as requested."
+  - "The board generates on-the-fly to properly implement the escalating risk mechanic."
