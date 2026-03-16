@@ -1,56 +1,63 @@
-import express from "express";
+import { Router } from "express";
+import { config } from "../config";
 
-const router = express.Router();
+const router = Router();
 
 router.post("/telegram", async (req, res) => {
-  console.log("Telegram update received:");
-  console.log(JSON.stringify(req.body, null, 2));
+  try {
+    console.log("Telegram update received:");
+    console.log(JSON.stringify(req.body, null, 2));
 
-  const message = req.body?.message;
+    const message = req.body?.message;
 
-  if (!message) {
-    console.log("No message found in body");
-    return res.sendStatus(200);
-  }
+    if (!message) {
+      return res.sendStatus(200);
+    }
 
-  const chatId = message.chat?.id;
-  const text = message.text;
-  const token = process.env.TELEGRAM_BOT_TOKEN;
+    const chatId = message.chat?.id;
+    const text = message.text;
 
-  console.log("chatId:", chatId);
-  console.log("text:", text);
-  console.log("token exists:", Boolean(token));
+    if (!chatId || !text) {
+      return res.sendStatus(200);
+    }
 
-  if (text === "/start" && token && chatId) {
-    const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text: "Welcome to Lucky Miner!\n\nClick below to start mining.",
-        reply_markup: {
-          inline_keyboard: [
-            [
-              {
-                text: "Play Lucky Miner",
-                web_app: {
-                  url: "https://rigid-medicably-michale.ngrok-free.dev",
-                },
-              },
-            ],
-          ],
+    if (text === "/start") {
+      const response = await fetch(
+        `https://api.telegram.org/bot${config.telegramBotToken}/sendMessage`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            chat_id: chatId,
+            text: "Welcome to Lucky Miner!\n\nClick below to start mining.",
+            reply_markup: {
+              inline_keyboard: [
+                [
+                  {
+                    text: "Play Lucky Miner",
+                    web_app: {
+                      url: config.webAppUrl,
+                    },
+                  },
+                ],
+              ],
+            },
+          }),
         },
-      }),
-    });
+      );
 
-    const data = await response.text();
-    console.log("Telegram sendMessage status:", response.status);
-    console.log("Telegram sendMessage response:", data);
+      const data = await response.text();
+      console.log("Telegram sendMessage status:", response.status);
+      console.log("Telegram sendMessage response:", data);
+    }
+
+    return res.sendStatus(200);
+  } catch (error) {
+    console.error("Telegram route error:", error);
+    return res.sendStatus(500);
   }
-
-  res.sendStatus(200);
 });
 
 export default router;
